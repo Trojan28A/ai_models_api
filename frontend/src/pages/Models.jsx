@@ -14,6 +14,35 @@ const Models = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const tiers = [
+    { value: 'all', label: 'All Tiers' },
+    { value: 'free', label: 'Free Tier' },
+    { value: 'basic', label: 'Basic Tier' },
+    { value: 'pro', label: 'Pro Tier' },
+    { value: 'ultra', label: 'Ultra Tier' }
+  ];
+
+  const allCategories = [
+    { value: 'all', label: 'All Types', tiers: ['free', 'basic', 'pro', 'ultra'] },
+    { value: 'chat_completion', label: 'Chat & Completion', tiers: ['free', 'basic', 'pro', 'ultra'] },
+    { value: 'image_generation', label: 'Images & Generation', tiers: ['pro', 'ultra'] },
+    { value: 'image_edits', label: 'Image & Edits', tiers: ['pro', 'ultra'] },
+    { value: 'audio_speech', label: 'Audio & Speech', tiers: ['pro', 'ultra'] },
+    { value: 'audio_transcription', label: 'Audio & Transcription', tiers: ['pro', 'ultra'] },
+    { value: 'embeddings', label: 'Embeddings', tiers: ['pro', 'ultra'] },
+    { value: 'video', label: 'Video', tiers: ['ultra'] }
+  ];
+
+  // Filter categories based on selected tier
+  const categories = useMemo(() => {
+    if (selectedTier === 'all') {
+      return allCategories;
+    }
+    return allCategories.filter(cat => 
+      cat.value === 'all' || cat.tiers.includes(selectedTier)
+    );
+  }, [selectedTier]);
+
   // Reset category when tier changes if current category is not available for new tier
   useEffect(() => {
     const availableCategories = categories.map(cat => cat.value);
@@ -45,35 +74,6 @@ const Models = () => {
 
     fetchModels();
   }, [selectedTier, selectedCategory]);
-
-  const tiers = [
-    { value: 'all', label: 'All Tiers' },
-    { value: 'free', label: 'Free Tier' },
-    { value: 'basic', label: 'Basic Tier' },
-    { value: 'pro', label: 'Pro Tier' },
-    { value: 'ultra', label: 'Ultra Tier' }
-  ];
-
-  const allCategories = [
-    { value: 'all', label: 'All Types', tiers: ['free', 'basic', 'pro', 'ultra'] },
-    { value: 'chat_completion', label: 'Chat & Completion', tiers: ['free', 'basic', 'pro', 'ultra'] },
-    { value: 'image_generation', label: 'Images & Generation', tiers: ['pro', 'ultra'] },
-    { value: 'image_edits', label: 'Image & Edits', tiers: ['pro', 'ultra'] },
-    { value: 'audio_speech', label: 'Audio & Speech', tiers: ['pro', 'ultra'] },
-    { value: 'audio_transcription', label: 'Audio & Transcription', tiers: ['pro', 'ultra'] },
-    { value: 'embeddings', label: 'Embeddings', tiers: ['pro', 'ultra'] },
-    { value: 'video', label: 'Video', tiers: ['ultra'] }
-  ];
-
-  // Filter categories based on selected tier
-  const categories = useMemo(() => {
-    if (selectedTier === 'all') {
-      return allCategories;
-    }
-    return allCategories.filter(cat => 
-      cat.value === 'all' || cat.tiers.includes(selectedTier)
-    );
-  }, [selectedTier]);
 
   const filteredModels = useMemo(() => {
     if (!searchQuery) return models;
