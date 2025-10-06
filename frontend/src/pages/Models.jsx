@@ -1,9 +1,9 @@
-import React, { useState, useMemo } from 'react';
-import { Search } from 'lucide-react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { Search, Loader2 } from 'lucide-react';
 import { Input } from '../components/ui/input';
 import { Badge } from '../components/ui/badge';
 import ModelCard from '../components/ModelCard';
-import { mockModels } from '../mock';
+import { modelsAPI } from '../services/api';
 
 const Models = () => {
   const [searchQuery, setSearchQuery] = useState('');
