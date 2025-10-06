@@ -88,6 +88,16 @@ const TextPlayground = () => {
               </Badge>
             )}
           </div>
+          
+          {/* API Key Warning */}
+          {!hasAPIKey() && (
+            <Alert className="bg-yellow-500/10 border-yellow-500/50 text-yellow-400">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                Please set your A4F.co API key in the navbar to use this playground.
+              </AlertDescription>
+            </Alert>
+          )}
         </div>
 
         <div className="grid lg:grid-cols-3 gap-6">
