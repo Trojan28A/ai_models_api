@@ -1,36 +1,73 @@
 import React, { useState } from 'react';
-import { useLocation, useParams } from 'react-router-dom';
-import { Send, Loader2 } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
+import { Send, Loader2, AlertCircle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Textarea } from '../components/ui/textarea';
 import { Badge } from '../components/ui/badge';
+import { Alert, AlertDescription } from '../components/ui/alert';
+import { useAPIKey } from '../contexts/APIKeyContext';
+import { playgroundAPI } from '../services/api';
+import { toast } from '../hooks/use-toast';
 
 const TextPlayground = () => {
   const location = useLocation();
   const model = location.state?.model;
+  const { apiKey, hasAPIKey } = useAPIKey();
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
+  // Get the model ID to use for API calls (with provider prefix)
+  const getModelId = () => {
+    if (!model) return '';
+    const provider = model.proxy_providers?.[0];
+    return provider?.id || model.base_model;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!input.trim()) return;
+
+    if (!hasAPIKey()) {
+      toast({
+        title: "API Key Required",
+        description: "Please set your A4F.co API key in the navbar to use the playground.",
+        variant: "destructive"
+      });
+      return;
+    }
 
     const userMessage = { role: 'user', content: input };
     setMessages(prev => [...prev, userMessage]);
     setInput('');
     setIsLoading(true);
 
-    // Mock AI response
-    setTimeout(() => {
+    try {
+      const response = await playgroundAPI.textCompletion(
+        apiKey,
+        getModelId(),
+        [...messages, userMessage]
+      );
+
       const aiMessage = {
         role: 'assistant',
-        content: `This is a mock response from ${model?.name || 'AI Model'}. In production, this would connect to the actual API and process your request: "${input}"`
+        content: response.choices?.[0]?.message?.content || 'No response generated'
       };
       setMessages(prev => [...prev, aiMessage]);
+    } catch (error) {
+      console.error('Error:', error);
+      toast({
+        title: "Error",
+        description: error.response?.data?.detail || "Failed to get response from AI model",
+        variant: "destructive"
+      });
+      // Remove the user message if the API call failed
+      setMessages(prev => prev.slice(0, -1));
+      setInput(userMessage.content);
+    } finally {
       setIsLoading(false);
-    }, 1500);
+    }
   };
 
   return (
