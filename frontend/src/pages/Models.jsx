@@ -9,6 +9,32 @@ const Models = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTier, setSelectedTier] = useState('all');
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [models, setModels] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Fetch models on component mount and when filters change
+  useEffect(() => {
+    const fetchModels = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const filters = {};
+        if (selectedTier !== 'all') filters.tier = selectedTier;
+        if (selectedCategory !== 'all') filters.category = selectedCategory;
+        
+        const data = await modelsAPI.fetchModels(filters);
+        setModels(data.models || []);
+      } catch (err) {
+        console.error('Error fetching models:', err);
+        setError('Failed to load models. Please try again later.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchModels();
+  }, [selectedTier, selectedCategory]);
 
   const tiers = [
     { value: 'all', label: 'All Tiers' },
