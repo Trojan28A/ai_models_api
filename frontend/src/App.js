@@ -6,6 +6,7 @@ import { Toaster } from "./components/ui/toaster";
 import Navbar from "./components/Navbar";
 import Home from "./pages/Home";
 import Models from "./pages/Models";
+import ModelsTest from "./pages/ModelsTest";
 import PlaygroundSelector from "./pages/PlaygroundSelector";
 import TextPlayground from "./pages/TextPlayground";
 import ImagePlayground from "./pages/ImagePlayground";
