@@ -331,18 +331,333 @@ class AIModelsHubTester:
                 f"All required fields present. Optional fields: {present_optional}"
             )
     
+    def test_tier_filtering_all_tiers(self):
+        """Test tier filtering for all tiers including ultra"""
+        tiers = ['free', 'basic', 'pro', 'ultra']
+        
+        for tier in tiers:
+            try:
+                response = requests.get(f"{self.api_url}/models?tier={tier}", timeout=30)
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    
+                    if "models" in data and "count" in data:
+                        models = data["models"]
+                        count = data["count"]
+                        
+                        if isinstance(models, list):
+                            # Verify all models have the correct tier
+                            all_correct_tier = all(model.get('tier') == tier for model in models)
+                            
+                            if all_correct_tier:
+                                self.log_test(
+                                    f"Filter by {tier.title()} Tier (/api/models?tier={tier})",
+                                    True,
+                                    f"Retrieved {count} {tier} tier models, all correctly filtered"
+                                )
+                            else:
+                                wrong_tier = [m for m in models if m.get('tier') != tier]
+                                self.log_test(
+                                    f"Filter by {tier.title()} Tier (/api/models?tier={tier})",
+                                    False,
+                                    f"Found {len(wrong_tier)} models with wrong tier in {tier} tier filter"
+                                )
+                        else:
+                            self.log_test(
+                                f"Filter by {tier.title()} Tier (/api/models?tier={tier})",
+                                False,
+                                "Models field is not a list"
+                            )
+                    else:
+                        self.log_test(
+                            f"Filter by {tier.title()} Tier (/api/models?tier={tier})",
+                            False,
+                            f"Missing required fields: {list(data.keys())}"
+                        )
+                else:
+                    self.log_test(
+                        f"Filter by {tier.title()} Tier (/api/models?tier={tier})",
+                        False,
+                        f"Expected 200, got {response.status_code}: {response.text}"
+                    )
+                    
+            except Exception as e:
+                self.log_test(
+                    f"Filter by {tier.title()} Tier (/api/models?tier={tier})",
+                    False,
+                    f"Request failed: {str(e)}"
+                )
+
+    def test_category_filtering_specific_categories(self):
+        """Test category filtering for new specific categories"""
+        categories = [
+            'chat_completion',
+            'image_generation', 
+            'image_edits',
+            'audio_speech',
+            'audio_transcription',
+            'embeddings',
+            'video'
+        ]
+        
+        for category in categories:
+            try:
+                response = requests.get(f"{self.api_url}/models?category={category}", timeout=30)
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    
+                    if "models" in data and "count" in data:
+                        models = data["models"]
+                        count = data["count"]
+                        
+                        if isinstance(models, list):
+                            # Verify all models have the correct category
+                            all_correct_category = all(model.get('category') == category for model in models)
+                            
+                            if all_correct_category:
+                                self.log_test(
+                                    f"Filter by {category.replace('_', ' ').title()} Category (/api/models?category={category})",
+                                    True,
+                                    f"Retrieved {count} {category} models, all correctly filtered"
+                                )
+                            else:
+                                wrong_category = [m for m in models if m.get('category') != category]
+                                self.log_test(
+                                    f"Filter by {category.replace('_', ' ').title()} Category (/api/models?category={category})",
+                                    False,
+                                    f"Found {len(wrong_category)} models with wrong category in {category} filter"
+                                )
+                        else:
+                            self.log_test(
+                                f"Filter by {category.replace('_', ' ').title()} Category (/api/models?category={category})",
+                                False,
+                                "Models field is not a list"
+                            )
+                    else:
+                        self.log_test(
+                            f"Filter by {category.replace('_', ' ').title()} Category (/api/models?category={category})",
+                            False,
+                            f"Missing required fields: {list(data.keys())}"
+                        )
+                else:
+                    self.log_test(
+                        f"Filter by {category.replace('_', ' ').title()} Category (/api/models?category={category})",
+                        False,
+                        f"Expected 200, got {response.status_code}: {response.text}"
+                    )
+                    
+            except Exception as e:
+                self.log_test(
+                    f"Filter by {category.replace('_', ' ').title()} Category (/api/models?category={category})",
+                    False,
+                    f"Request failed: {str(e)}"
+                )
+
+    def test_combined_filtering(self):
+        """Test combined tier + category filtering"""
+        test_combinations = [
+            ('ultra', 'image_generation'),
+            ('pro', 'audio_speech'),
+            ('basic', 'chat_completion'),
+            ('free', 'embeddings')
+        ]
+        
+        for tier, category in test_combinations:
+            try:
+                response = requests.get(f"{self.api_url}/models?tier={tier}&category={category}", timeout=30)
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    
+                    if "models" in data and "count" in data:
+                        models = data["models"]
+                        count = data["count"]
+                        
+                        if isinstance(models, list):
+                            # Verify all models have both correct tier and category
+                            all_correct = all(
+                                model.get('tier') == tier and model.get('category') == category 
+                                for model in models
+                            )
+                            
+                            if all_correct:
+                                self.log_test(
+                                    f"Combined Filter {tier.title()}+{category.replace('_', ' ').title()} (/api/models?tier={tier}&category={category})",
+                                    True,
+                                    f"Retrieved {count} models matching both {tier} tier and {category} category"
+                                )
+                            else:
+                                wrong_models = [
+                                    m for m in models 
+                                    if m.get('tier') != tier or m.get('category') != category
+                                ]
+                                self.log_test(
+                                    f"Combined Filter {tier.title()}+{category.replace('_', ' ').title()} (/api/models?tier={tier}&category={category})",
+                                    False,
+                                    f"Found {len(wrong_models)} models not matching both filters"
+                                )
+                        else:
+                            self.log_test(
+                                f"Combined Filter {tier.title()}+{category.replace('_', ' ').title()} (/api/models?tier={tier}&category={category})",
+                                False,
+                                "Models field is not a list"
+                            )
+                    else:
+                        self.log_test(
+                            f"Combined Filter {tier.title()}+{category.replace('_', ' ').title()} (/api/models?tier={tier}&category={category})",
+                            False,
+                            f"Missing required fields: {list(data.keys())}"
+                        )
+                else:
+                    self.log_test(
+                        f"Combined Filter {tier.title()}+{category.replace('_', ' ').title()} (/api/models?tier={tier}&category={category})",
+                        False,
+                        f"Expected 200, got {response.status_code}: {response.text}"
+                    )
+                    
+            except Exception as e:
+                self.log_test(
+                    f"Combined Filter {tier.title()}+{category.replace('_', ' ').title()} (/api/models?tier={tier}&category={category})",
+                    False,
+                    f"Request failed: {str(e)}"
+                )
+
+    def test_model_count_validation(self):
+        """Test that count field matches actual number of models returned"""
+        test_endpoints = [
+            "/models",
+            "/models?tier=free",
+            "/models?tier=ultra", 
+            "/models?category=chat_completion",
+            "/models?tier=pro&category=image_generation"
+        ]
+        
+        for endpoint in test_endpoints:
+            try:
+                response = requests.get(f"{self.api_url}{endpoint}", timeout=30)
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    
+                    if "models" in data and "count" in data:
+                        models = data["models"]
+                        count = data["count"]
+                        actual_count = len(models)
+                        
+                        if count == actual_count:
+                            self.log_test(
+                                f"Count Validation ({endpoint})",
+                                True,
+                                f"Count field ({count}) matches actual models returned ({actual_count})"
+                            )
+                        else:
+                            self.log_test(
+                                f"Count Validation ({endpoint})",
+                                False,
+                                f"Count field ({count}) doesn't match actual models returned ({actual_count})"
+                            )
+                    else:
+                        self.log_test(
+                            f"Count Validation ({endpoint})",
+                            False,
+                            f"Missing required fields: {list(data.keys())}"
+                        )
+                else:
+                    self.log_test(
+                        f"Count Validation ({endpoint})",
+                        False,
+                        f"Expected 200, got {response.status_code}: {response.text}"
+                    )
+                    
+            except Exception as e:
+                self.log_test(
+                    f"Count Validation ({endpoint})",
+                    False,
+                    f"Request failed: {str(e)}"
+                )
+
+    def validate_new_model_structure(self, model: Dict):
+        """Validate that a model has the new categorization structure"""
+        expected_fields = ['name', 'description', 'type', 'tier', 'category']
+        optional_fields = ['proxy_providers', 'features', 'base_model']
+        
+        # Check for new specific categories
+        valid_categories = [
+            'chat_completion', 'image_generation', 'image_edits', 
+            'audio_speech', 'audio_transcription', 'embeddings', 'video'
+        ]
+        
+        missing_fields = []
+        for field in expected_fields:
+            if field not in model:
+                missing_fields.append(field)
+        
+        category_valid = model.get('category') in valid_categories
+        
+        if missing_fields:
+            self.log_test(
+                "New Model Structure Validation",
+                False,
+                f"Missing expected fields: {missing_fields}. Available fields: {list(model.keys())}"
+            )
+        elif not category_valid:
+            self.log_test(
+                "New Model Structure Validation",
+                False,
+                f"Invalid category '{model.get('category')}'. Expected one of: {valid_categories}"
+            )
+        else:
+            present_optional = [f for f in optional_fields if f in model]
+            self.log_test(
+                "New Model Structure Validation",
+                True,
+                f"All required fields present with valid category '{model.get('category')}'. Optional fields: {present_optional}"
+            )
+
     def run_all_tests(self):
-        """Run all backend tests"""
-        print("Starting AI Models Hub Backend Tests...")
+        """Run all backend tests including new filtering improvements"""
+        print("Starting AI Models Hub Backend Tests - Filtering Improvements Focus...")
         print()
         
-        # Test all endpoints
+        # Test basic endpoints first
         self.test_root_endpoint()
         print()
         
         self.test_get_all_models()
         print()
         
+        # NEW FILTERING TESTS - Focus of this review
+        print("=== TIER FILTERING TESTS (Including Ultra) ===")
+        self.test_tier_filtering_all_tiers()
+        print()
+        
+        print("=== CATEGORY FILTERING TESTS (New Specific Categories) ===")
+        self.test_category_filtering_specific_categories()
+        print()
+        
+        print("=== COMBINED FILTERING TESTS ===")
+        self.test_combined_filtering()
+        print()
+        
+        print("=== MODEL COUNT VALIDATION ===")
+        self.test_model_count_validation()
+        print()
+        
+        # Test model structure with new categorization
+        print("=== MODEL STRUCTURE VALIDATION (New Categories) ===")
+        try:
+            response = requests.get(f"{self.api_url}/models", timeout=30)
+            if response.status_code == 200:
+                data = response.json()
+                if data.get('models'):
+                    self.validate_new_model_structure(data['models'][0])
+        except:
+            pass
+        print()
+        
+        # Legacy tests
         self.test_filter_by_free_tier()
         print()
         
