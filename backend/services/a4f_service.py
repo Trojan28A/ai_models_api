@@ -39,7 +39,7 @@ class A4FService:
         Fetch models from all tiers
         """
         all_models = []
-        tiers = ['free', 'basic', 'pro']
+        tiers = ['free', 'basic', 'pro', 'ultra']
         
         for tier in tiers:
             data = self.get_display_models(tier)
