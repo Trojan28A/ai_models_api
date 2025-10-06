@@ -50,20 +50,29 @@ class A4FService:
     
     def _categorize_model(self, model_type: str) -> str:
         """
-        Categorize model based on type
+        Categorize model based on type with more specific categories
         """
         model_type_lower = model_type.lower()
         
-        if 'image' in model_type_lower:
-            return 'image'
-        elif 'audio' in model_type_lower or 'speech' in model_type_lower or 'transcription' in model_type_lower:
-            return 'audio'
+        # More specific categorization
+        if 'speech' in model_type_lower or 'tts' in model_type_lower:
+            return 'audio_speech'
+        elif 'transcription' in model_type_lower or 'stt' in model_type_lower:
+            return 'audio_transcription'
+        elif 'audio' in model_type_lower:
+            return 'audio_speech'  # Default audio to speech
+        elif 'image' in model_type_lower and ('edit' in model_type_lower or 'variation' in model_type_lower):
+            return 'image_edits'
+        elif 'image' in model_type_lower or 'generation' in model_type_lower:
+            return 'image_generation'
         elif 'video' in model_type_lower:
             return 'video'
+        elif 'embedding' in model_type_lower:
+            return 'embeddings'
         elif 'chat' in model_type_lower or 'completion' in model_type_lower or 'text' in model_type_lower:
-            return 'text'
+            return 'chat_completion'
         else:
-            return 'text'  # Default to text
+            return 'chat_completion'  # Default to chat completion
     
     def chat_completion(self, api_key: str, model: str, messages: List[Dict], **kwargs) -> Dict:
         """
