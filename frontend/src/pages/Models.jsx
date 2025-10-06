@@ -76,11 +76,16 @@ const Models = () => {
   }, [selectedTier]);
 
   const filteredModels = useMemo(() => {
+    if (!searchQuery) return models;
+    
     return models.filter(model => {
-      const matchesSearch = model.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                           model.description?.toLowerCase().includes(searchQuery.toLowerCase());
+      const searchLower = searchQuery.toLowerCase();
+      const matchesName = (model.name || model.base_model || '').toLowerCase().includes(searchLower);
+      const matchesDescription = (model.description || '').toLowerCase().includes(searchLower);
+      const matchesType = (model.type || '').toLowerCase().includes(searchLower);
+      const matchesCategory = (model.category || '').toLowerCase().includes(searchLower);
       
-      return matchesSearch;
+      return matchesName || matchesDescription || matchesType || matchesCategory;
     });
   }, [models, searchQuery]);
 
