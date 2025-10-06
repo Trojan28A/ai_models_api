@@ -9,8 +9,8 @@ a4f_service = A4FService()
 
 @router.get("/models")
 async def get_models(
-    tier: Optional[str] = Query(None, description="Filter by tier: free, basic, pro"),
-    category: Optional[str] = Query(None, description="Filter by category: text, image, audio, video")
+    tier: Optional[str] = Query(None, description="Filter by tier: free, basic, pro, ultra"),
+    category: Optional[str] = Query(None, description="Filter by category: chat_completion, image_generation, image_edits, audio_speech, audio_transcription, embeddings, video")
 ):
     """
     Fetch all AI models from a4f.co
