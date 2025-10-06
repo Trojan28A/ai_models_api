@@ -44,13 +44,26 @@ const Models = () => {
     { value: 'ultra', label: 'Ultra Tier' }
   ];
 
-  const categories = [
-    { value: 'all', label: 'All Types' },
-    { value: 'text', label: 'Chat & Completion' },
-    { value: 'image', label: 'Images & Generation' },
-    { value: 'audio', label: 'Audio & Speech' },
-    { value: 'video', label: 'Video' }
+  const allCategories = [
+    { value: 'all', label: 'All Types', tiers: ['free', 'basic', 'pro', 'ultra'] },
+    { value: 'chat_completion', label: 'Chat & Completion', tiers: ['free', 'basic', 'pro', 'ultra'] },
+    { value: 'image_generation', label: 'Images & Generation', tiers: ['pro', 'ultra'] },
+    { value: 'image_edits', label: 'Image & Edits', tiers: ['pro', 'ultra'] },
+    { value: 'audio_speech', label: 'Audio & Speech', tiers: ['pro', 'ultra'] },
+    { value: 'audio_transcription', label: 'Audio & Transcription', tiers: ['pro', 'ultra'] },
+    { value: 'embeddings', label: 'Embeddings', tiers: ['pro', 'ultra'] },
+    { value: 'video', label: 'Video', tiers: ['ultra'] }
   ];
+
+  // Filter categories based on selected tier
+  const categories = useMemo(() => {
+    if (selectedTier === 'all') {
+      return allCategories;
+    }
+    return allCategories.filter(cat => 
+      cat.value === 'all' || cat.tiers.includes(selectedTier)
+    );
+  }, [selectedTier]);
 
   const filteredModels = useMemo(() => {
     return models.filter(model => {
