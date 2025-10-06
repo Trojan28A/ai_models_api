@@ -176,7 +176,16 @@ const Models = () => {
         {/* Results Count */}
         <div className="mb-6">
           <p className="text-gray-400 text-sm">
-            Showing <span className="text-white font-semibold">{filteredModels.length}</span> models
+            {searchQuery ? (
+              <>
+                Showing <span className="text-white font-semibold">{filteredModels.length}</span> of <span className="text-white font-semibold">{totalCount}</span> models
+                {searchQuery && <span className="ml-2 text-purple-400">matching "{searchQuery}"</span>}
+              </>
+            ) : (
+              <>
+                Showing <span className="text-white font-semibold">{totalCount}</span> models
+              </>
+            )}
           </p>
         </div>
 
