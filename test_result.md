@@ -188,7 +188,10 @@ metadata:
 
 test_plan:
   current_focus:
-    - "All model fetching endpoints tested and working"
+    - "All filtering improvements tested and working"
+    - "Ultra tier filtering confirmed"
+    - "New category system validated"
+    - "Combined filtering functional"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
