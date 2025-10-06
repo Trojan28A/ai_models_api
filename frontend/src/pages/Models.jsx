@@ -14,6 +14,14 @@ const Models = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Reset category when tier changes if current category is not available for new tier
+  useEffect(() => {
+    const availableCategories = categories.map(cat => cat.value);
+    if (!availableCategories.includes(selectedCategory)) {
+      setSelectedCategory('all');
+    }
+  }, [selectedTier, categories, selectedCategory]);
+
   // Fetch models on component mount and when filters change
   useEffect(() => {
     const fetchModels = async () => {
@@ -26,6 +34,7 @@ const Models = () => {
         
         const data = await modelsAPI.fetchModels(filters);
         setModels(data.models || []);
+        setTotalCount(data.count || 0);
       } catch (err) {
         console.error('Error fetching models:', err);
         setError('Failed to load models. Please try again later.');
