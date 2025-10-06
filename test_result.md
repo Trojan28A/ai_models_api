@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Test the AI Models Hub backend API endpoints for model fetching functionality"
+user_problem_statement: "Fix AI Models Hub filtering issues: model filtering not working according to tier, incorrect model counter, broken search functionality, and tier-based filter visibility not implemented correctly"
 
 backend:
   - task: "Root API Endpoint"
