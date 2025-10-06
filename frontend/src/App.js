@@ -21,8 +21,7 @@ function App() {
           <Navbar />
           <Routes>
             <Route path="/" element={<Home />} />
-            <Route path="/models" element={<ModelsTest />} />
-            <Route path="/models-original" element={<Models />} />
+            <Route path="/models" element={<Models />} />
             <Route path="/playground" element={<PlaygroundSelector />} />
             <Route path="/playground/text" element={<TextPlayground />} />
             <Route path="/playground/image" element={<ImagePlayground />} />
