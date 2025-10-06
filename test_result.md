@@ -193,6 +193,68 @@ test_plan:
   test_all: false
   test_priority: "high_first"
 
+  - task: "Ultra Tier Filtering"
+    implemented: true
+    working: true
+    file: "backend/routes/models.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "GET /api/models?tier=ultra endpoint working correctly. Retrieved 192 ultra tier models, all properly filtered. New ultra tier functionality confirmed working."
+
+  - task: "New Category Filtering System"
+    implemented: true
+    working: true
+    file: "backend/services/a4f_service.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "All new specific categories working: chat_completion (527 models), image_generation (38), image_edits (4), audio_speech (6), audio_transcription (8), embeddings (12), video (0). Categorization logic properly implemented."
+
+  - task: "Combined Tier+Category Filtering"
+    implemented: true
+    working: true
+    file: "backend/routes/models.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "Combined filtering working correctly. Tested ultra+image_generation (14 models), pro+audio_speech (3), basic+chat_completion (127), free+embeddings (1). All combinations filter properly."
+
+  - task: "Model Count Field Validation"
+    implemented: true
+    working: true
+    file: "backend/routes/models.py"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "Count field accurately matches actual number of models returned across all endpoints. Tested on 5 different endpoint combinations, all accurate."
+
+  - task: "New Model Structure with Categories"
+    implemented: true
+    working: true
+    file: "backend/services/a4f_service.py"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "Models now have proper categorization with specific category fields. All models contain required fields (name, description, type, tier, category) with valid category values from the new system."
+
 agent_communication:
     - agent: "testing"
       message: "Completed comprehensive testing of AI Models Hub backend API endpoints. All 5 requested endpoints are working correctly: root endpoint, get all models, filter by free tier, filter by text category, and get specific model. The API successfully fetches 400+ models from a4f.co and handles filtering properly. Model structure validation passed. Edge cases like non-existent models return proper 404 responses."
+    - agent: "testing"
+      message: "FILTERING IMPROVEMENTS TESTING COMPLETE: Successfully tested all new filtering features. Ultra tier filtering works (192 models), all 7 new specific categories implemented correctly, combined tier+category filtering functional, count validation accurate, and new model structure with proper categorization confirmed. Total 28 tests passed with 100% success rate. All requested filtering improvements are working as expected."
