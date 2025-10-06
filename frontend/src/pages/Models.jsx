@@ -53,15 +53,13 @@ const Models = () => {
   ];
 
   const filteredModels = useMemo(() => {
-    return mockModels.filter(model => {
+    return models.filter(model => {
       const matchesSearch = model.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                            model.description?.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesTier = selectedTier === 'all' || model.tier === selectedTier;
-      const matchesCategory = selectedCategory === 'all' || model.category === selectedCategory;
       
-      return matchesSearch && matchesTier && matchesCategory;
+      return matchesSearch;
     });
-  }, [searchQuery, selectedTier, selectedCategory]);
+  }, [models, searchQuery]);
 
   const getTierColor = (tier) => {
     switch (tier) {
