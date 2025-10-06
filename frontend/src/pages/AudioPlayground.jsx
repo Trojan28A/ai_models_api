@@ -1,35 +1,95 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
-import { Mic, Volume2, Upload, Loader2 } from 'lucide-react';
+import { Mic, Volume2, Upload, Loader2, AlertCircle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Textarea } from '../components/ui/textarea';
 import { Badge } from '../components/ui/badge';
+import { Alert, AlertDescription } from '../components/ui/alert';
+import { useAPIKey } from '../contexts/APIKeyContext';
+import { playgroundAPI } from '../services/api';
+import { toast } from '../hooks/use-toast';
 
 const AudioPlayground = () => {
   const location = useLocation();
   const model = location.state?.model;
+  const { apiKey, hasAPIKey } = useAPIKey();
   const [input, setInput] = useState('');
   const [output, setOutput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [audioUrl, setAudioUrl] = useState(null);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const fileInputRef = useRef(null);
   const isTranscription = model?.type?.includes('transcription');
+
+  const getModelId = () => {
+    if (!model) return '';
+    const provider = model.proxy_providers?.[0];
+    return provider?.id || model.base_model;
+  };
+
+  const handleFileSelect = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setSelectedFile(file);
+      setInput(file.name);
+    }
+  };
 
   const handleProcess = async (e) => {
     e.preventDefault();
-    if (!input.trim()) return;
+    if (!input.trim() && !selectedFile) return;
+
+    if (!hasAPIKey()) {
+      toast({
+        title: "API Key Required",
+        description: "Please set your A4F.co API key in the navbar to use the playground.",
+        variant: "destructive"
+      });
+      return;
+    }
 
     setIsLoading(true);
     setOutput('');
+    setAudioUrl(null);
 
-    // Mock processing
-    setTimeout(() => {
+    try {
       if (isTranscription) {
-        setOutput(`Transcribed text: This is a mock transcription of your audio input using ${model?.name}.`);
+        if (!selectedFile) {
+          toast({
+            title: "File Required",
+            description: "Please select an audio file to transcribe.",
+            variant: "destructive"
+          });
+          setIsLoading(false);
+          return;
+        }
+        const response = await playgroundAPI.audioTranscription(
+          apiKey,
+          getModelId(),
+          selectedFile
+        );
+        setOutput(response.text || 'Transcription completed');
       } else {
-        setOutput(`Audio generated successfully from the text: "${input}"`);
+        const audioBlob = await playgroundAPI.audioGeneration(
+          apiKey,
+          getModelId(),
+          input
+        );
+        const url = URL.createObjectURL(audioBlob);
+        setAudioUrl(url);
+        setOutput('Audio generated successfully');
       }
+    } catch (error) {
+      console.error('Error:', error);
+      toast({
+        title: "Error",
+        description: error.response?.data?.detail || `Failed to ${isTranscription ? 'transcribe' : 'generate'} audio`,
+        variant: "destructive"
+      });
+    } finally {
       setIsLoading(false);
-    }, 1500);
+    }
   };
 
   return (
@@ -50,6 +110,15 @@ const AudioPlayground = () => {
               </Badge>
             )}
           </div>
+          
+          {!hasAPIKey() && (
+            <Alert className="bg-yellow-500/10 border-yellow-500/50 text-yellow-400">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                Please set your A4F.co API key in the navbar to use this playground.
+              </AlertDescription>
+            </Alert>
+          )}
         </div>
 
         <div className="grid lg:grid-cols-3 gap-6">
@@ -75,19 +144,23 @@ const AudioPlayground = () => {
               <CardContent className="p-6">
                 {isTranscription ? (
                   <div className="space-y-4">
-                    <div className="border-2 border-dashed border-gray-700 rounded-lg p-8 text-center hover:border-purple-500/50 transition-colors cursor-pointer">
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="audio/*"
+                      onChange={handleFileSelect}
+                      className="hidden"
+                    />
+                    <div 
+                      onClick={() => fileInputRef.current?.click()}
+                      className="border-2 border-dashed border-gray-700 rounded-lg p-8 text-center hover:border-purple-500/50 transition-colors cursor-pointer"
+                    >
                       <Upload className="w-12 h-12 text-gray-500 mx-auto mb-3" />
-                      <p className="text-gray-400">Click to upload audio file</p>
+                      <p className="text-gray-400">
+                        {selectedFile ? selectedFile.name : 'Click to upload audio file'}
+                      </p>
                       <p className="text-gray-600 text-sm mt-1">MP3, WAV, M4A (Max 25MB)</p>
                     </div>
-                    <div className="text-center text-gray-500">or</div>
-                    <Textarea
-                      value={input}
-                      onChange={(e) => setInput(e.target.value)}
-                      placeholder="Paste audio file path or URL..."
-                      className="bg-gray-800/50 border-gray-700 text-white"
-                      rows={3}
-                    />
                   </div>
                 ) : (
                   <Textarea
@@ -104,7 +177,7 @@ const AudioPlayground = () => {
             {/* Process Button */}
             <Button
               onClick={handleProcess}
-              disabled={isLoading || !input.trim()}
+              disabled={isLoading || (!input.trim() && !selectedFile) || !hasAPIKey()}
               className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white"
             >
               {isLoading ? (
@@ -135,10 +208,10 @@ const AudioPlayground = () => {
                   <div className="bg-gray-800/50 rounded-lg p-4">
                     <p className="text-gray-200">{output}</p>
                   </div>
-                  {!isTranscription && (
+                  {audioUrl && (
                     <div className="mt-4 p-4 bg-gray-800/30 rounded-lg">
                       <audio controls className="w-full">
-                        <source src="" type="audio/mpeg" />
+                        <source src={audioUrl} type="audio/mpeg" />
                         Your browser does not support the audio element.
                       </audio>
                     </div>
@@ -188,11 +261,6 @@ const AudioPlayground = () => {
                     </div>
                   </div>
                 )}
-                <div className="pt-4 border-t border-gray-800">
-                  <p className="text-xs text-gray-500">
-                    Note: This is a demo playground. Actual API integration required for production use.
-                  </p>
-                </div>
               </CardContent>
             </Card>
           </div>

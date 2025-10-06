@@ -1,31 +1,67 @@
 import React, { useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import { Wand2, Loader2 } from 'lucide-react';
+import { Wand2, Loader2, AlertCircle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Textarea } from '../components/ui/textarea';
 import { Badge } from '../components/ui/badge';
+import { Alert, AlertDescription } from '../components/ui/alert';
+import { useAPIKey } from '../contexts/APIKeyContext';
+import { playgroundAPI } from '../services/api';
+import { toast } from '../hooks/use-toast';
 
 const ImagePlayground = () => {
   const location = useLocation();
   const model = location.state?.model;
+  const { apiKey, hasAPIKey } = useAPIKey();
   const [prompt, setPrompt] = useState('');
   const [generatedImage, setGeneratedImage] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+
+  const getModelId = () => {
+    if (!model) return '';
+    const provider = model.proxy_providers?.[0];
+    return provider?.id || model.base_model;
+  };
 
   const handleGenerate = async (e) => {
     e.preventDefault();
     if (!prompt.trim()) return;
 
+    if (!hasAPIKey()) {
+      toast({
+        title: "API Key Required",
+        description: "Please set your A4F.co API key in the navbar to use the playground.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setIsLoading(true);
     setGeneratedImage(null);
 
-    // Mock image generation
-    setTimeout(() => {
-      // Using a placeholder image service
-      setGeneratedImage(`https://placehold.co/1024x1024/1a1a2e/8b5cf6?text=${encodeURIComponent(prompt.slice(0, 30))}`);
+    try {
+      const response = await playgroundAPI.imageGeneration(
+        apiKey,
+        getModelId(),
+        prompt
+      );
+
+      if (response.data && response.data[0] && response.data[0].url) {
+        setGeneratedImage(response.data[0].url);
+      } else {
+        throw new Error('Invalid response format');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      toast({
+        title: "Error",
+        description: error.response?.data?.detail || "Failed to generate image",
+        variant: "destructive"
+      });
+    } finally {
       setIsLoading(false);
-    }, 2000);
+    }
   };
 
   return (
@@ -46,6 +82,15 @@ const ImagePlayground = () => {
               </Badge>
             )}
           </div>
+          
+          {!hasAPIKey() && (
+            <Alert className="bg-yellow-500/10 border-yellow-500/50 text-yellow-400">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                Please set your A4F.co API key in the navbar to use this playground.
+              </AlertDescription>
+            </Alert>
+          )}
         </div>
 
         <div className="grid lg:grid-cols-3 gap-6">
@@ -90,7 +135,7 @@ const ImagePlayground = () => {
                 />
                 <Button
                   type="submit"
-                  disabled={isLoading || !prompt.trim()}
+                  disabled={isLoading || !prompt.trim() || !hasAPIKey()}
                   className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white"
                 >
                   {isLoading ? (
@@ -149,11 +194,6 @@ const ImagePlayground = () => {
                     </div>
                   </div>
                 )}
-                <div className="pt-4 border-t border-gray-800">
-                  <p className="text-xs text-gray-500">
-                    Note: This is a demo playground. Actual API integration required for production use.
-                  </p>
-                </div>
               </CardContent>
             </Card>
           </div>
