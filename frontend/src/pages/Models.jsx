@@ -10,6 +10,7 @@ const Models = () => {
   const [selectedTier, setSelectedTier] = useState('all');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [models, setModels] = useState([]);
+  const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
