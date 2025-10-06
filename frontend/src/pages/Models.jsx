@@ -157,8 +157,17 @@ const Models = () => {
           </p>
         </div>
 
-        {/* Models Grid */}
-        {filteredModels.length > 0 ? (
+        {/* Loading State */}
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-16 space-y-4">
+            <Loader2 className="w-12 h-12 animate-spin text-purple-400" />
+            <p className="text-gray-400 text-lg">Loading models...</p>
+          </div>
+        ) : error ? (
+          <div className="text-center py-16">
+            <p className="text-red-400 text-lg">{error}</p>
+          </div>
+        ) : filteredModels.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredModels.map((model) => (
               <ModelCard key={model.base_model} model={model} />
